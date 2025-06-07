@@ -1431,6 +1431,11 @@
         .vidzee-icon {
             background: linear-gradient(135deg, #4CAF50, #8BC34A); /* Green gradient for VidZee */
         }
+        
+        /* NEW: CSS for 8stream icon */
+        .eightstream-icon {
+            background: linear-gradient(135deg, #8A2BE2, #4A00E0); /* A nice purple for 8stream */
+        }
 
         /* Migration Tool Styles */
         .migration-tool-container {
@@ -1686,6 +1691,12 @@
                         <div class="provider-name">VidZee</div>
                         <span class="provider-detail">Auto Quality</span>
                     </div>
+                    <!-- NEW: 8stream provider added -->
+                    <div class="provider-item">
+                        <div class="provider-icon eightstream-icon">🍿</div>
+                        <div class="provider-name">8stream</div>
+                        <span class="provider-detail">Multiple Qualities</span>
+                    </div>
                     <div class="provider-item">
                         <div class="provider-icon cuevana-icon">🇨</div> <!-- Placeholder icon, can be updated -->
                         <div class="provider-name">Cuevana</div>
@@ -1789,6 +1800,19 @@
                                 <label for="providerVidzee" style="font-size: 0.9rem;">VidZee</label>
                             </div>
                              <select id="qualityVidzee" name="providerQuality" data-provider="vidzee" class="provider-sort-select">
+                                <option value="all" selected>All Qualities</option>
+                                <option value="480p">480p & Up</option>
+                                <option value="720p">720p & Up</option>
+                                <option value="1080p">1080p & Up</option>
+                            </select>
+                        </div>
+                        <!-- NEW: 8stream checkbox added -->
+                        <div class="provider-checkbox-item" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.6rem;">
+                            <div style="display: flex; align-items: center;">
+                                <input type="checkbox" id="providerEightstream" name="providerSelect" value="8stream" checked style="margin-right: 0.5rem; accent-color: var(--primary);">
+                                <label for="providerEightstream" style="font-size: 0.9rem;">8stream</label>
+                            </div>
+                            <select id="qualityEightstream" name="providerQuality" data-provider="8stream" class="provider-sort-select">
                                 <option value="all" selected>All Qualities</option>
                                 <option value="480p">480p & Up</option>
                                 <option value="720p">720p & Up</option>
@@ -3181,4 +3205,4 @@
       });
     </script>
 </body>
-</html> 
+</html>
