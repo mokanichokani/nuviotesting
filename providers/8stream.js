@@ -39,14 +39,14 @@ async function proxiedFetch(url, options = {}, isJsonExpected = false) {
             try {
                 return JSON.parse(textData);
             } catch (e) {
-                console.error(`[8stream] Expected JSON but failed to parse. Content: ${textData.substring(0, 200)}`);
-                throw new Error('Failed to parse JSON response from 8stream');
+                console.error(`[eightstream] Expected JSON but failed to parse. Content: ${textData.substring(0, 200)}`);
+                throw new Error('Failed to parse JSON response from eightstream');
             }
         }
         return response.text();
     } catch (error) {
         clearTimeout(timeoutId);
-        console.error(`[8stream] Fetch error for ${url}:`, error.message);
+        console.error(`[eightstream] Fetch error for ${url}:`, error.message);
         throw error;
     }
 }
@@ -54,7 +54,7 @@ async function proxiedFetch(url, options = {}, isJsonExpected = false) {
 // Function to convert TMDB ID to IMDb ID
 async function convertTmdbToImdb(tmdbId, mediaType, apiKey) {
     if (!apiKey) {
-        console.warn('[8stream] TMDB_API_KEY not found, cannot convert to IMDb ID.');
+        console.warn('[eightstream] TMDB_API_KEY not found, cannot convert to IMDb ID.');
         return null;
     }
     const finalFetch = await fetchPromise;
@@ -66,7 +66,7 @@ async function convertTmdbToImdb(tmdbId, mediaType, apiKey) {
         const data = await response.json();
         return data.imdb_id || null;
     } catch (error) {
-        console.error(`[8stream] Error converting TMDB to IMDb:`, error.message);
+        console.error(`[eightstream] Error converting TMDB to IMDb:`, error.message);
         return null;
     }
 }
@@ -76,7 +76,7 @@ async function getMediaInfo(imdbId) {
     const url = `${API_BASE_URL}/play/${imdbId}`;
     const headers = { 'Origin': ORIGIN, 'Referer': 'https://google.com/', 'Dnt': '1' };
 
-    console.log(`[8stream] Fetching initial info from: ${url}`);
+    console.log(`[eightstream] Fetching initial info from: ${url}`);
     const resultHtml = await proxiedFetch(url, { headers });
     const $ = cheerio.load(resultHtml);
 
@@ -94,7 +94,7 @@ async function getMediaInfo(imdbId) {
     const key = data.key;
     if (!key) throw new Error('CSRF key not found in media JSON.');
 
-    console.log(`[8stream] Fetching language playlist from: ${playlistUrl}`);
+    console.log(`[eightstream] Fetching language playlist from: ${playlistUrl}`);
     const playlistData = await proxiedFetch(playlistUrl, {
         headers: { ...headers, 'X-Csrf-Token': key },
     }, true);
@@ -109,7 +109,7 @@ async function getFinalStreamUrl(filePath, key) {
     const url = `${API_BASE_URL}/playlist/${path}`;
     const headers = { 'Origin': ORIGIN, 'Referer': 'https://google.com/', 'Dnt': '1', 'X-Csrf-Token': key };
     
-    console.log(`[8stream] Fetching final M3U8 link from: ${url}`);
+    console.log(`[eightstream] Fetching final M3U8 link from: ${url}`);
     return await proxiedFetch(url, { headers });
 }
 
@@ -125,28 +125,28 @@ function parseM3U8(m3u8Content, baseUrl) {
                 streams.push({
                     url: new URL(variant.uri, baseUrl).href,
                     quality: quality,
-                    provider: '8stream',
+                    provider: 'eightstream',
                 });
             });
         } else {
-            streams.push({ url: baseUrl, quality: 'Auto', provider: '8stream' });
+            streams.push({ url: baseUrl, quality: 'Auto', provider: 'eightstream' });
         }
         return streams;
     } catch (error) {
-        console.error('[8stream] Failed to parse M3U8 playlist, returning direct link.', error.message);
-        return [{ url: baseUrl, quality: 'Auto', provider: '8stream' }];
+        console.error('[eightstream] Failed to parse M3U8 playlist, returning direct link.', error.message);
+        return [{ url: baseUrl, quality: 'Auto', provider: 'eightstream' }];
     }
 }
 
 // Main exported function for the addon
-async function get8streamStreams(tmdbId, mediaType, seasonNum, episodeNum, apiKey) {
-    console.log(`[8stream] Getting streams for TMDB ID: ${tmdbId}, Type: ${mediaType}`);
+async function geteightstreamStreams(tmdbId, mediaType, seasonNum, episodeNum, apiKey) {
+    console.log(`[eightstream] Getting streams for TMDB ID: ${tmdbId}, Type: ${mediaType}`);
     const imdbId = await convertTmdbToImdb(tmdbId, mediaType, apiKey);
     if (!imdbId) {
-        console.error(`[8stream] Could not get IMDb ID for TMDB ID ${tmdbId}. Skipping.`);
+        console.error(`[eightstream] Could not get IMDb ID for TMDB ID ${tmdbId}. Skipping.`);
         return [];
     }
-    console.log(`[8stream] Converted TMDB ID ${tmdbId} to IMDb ID ${imdbId}`);
+    console.log(`[eightstream] Converted TMDB ID ${tmdbId} to IMDb ID ${imdbId}`);
 
     try {
         const { playlist, key } = await getMediaInfo(imdbId);
@@ -171,18 +171,18 @@ async function get8streamStreams(tmdbId, mediaType, seasonNum, episodeNum, apiKe
 
         const m3u8Content = await proxiedFetch(m3u8Link);
         if (!m3u8Content.includes('#EXTM3U')) {
-            console.warn('[8stream] Content is not M3U8. Returning direct link.');
-            return [{ url: m3u8Link, quality: 'Auto', provider: '8stream' }];
+            console.warn('[eightstream] Content is not M3U8. Returning direct link.');
+            return [{ url: m3u8Link, quality: 'Auto', provider: 'eightstream' }];
         }
         
         const streams = parseM3U8(m3u8Content, m3u8Link);
-        console.log(`[8stream] Extracted ${streams.length} streams.`);
+        console.log(`[eightstream] Extracted ${streams.length} streams.`);
         return streams;
 
     } catch (error) {
-        console.error(`[8stream] Error in get8streamStreams:`, error.message);
+        console.error(`[eightstream] Error in geteightstreamStreams:`, error.message);
         return [];
     }
 }
 
-module.exports = { get8streamStreams };
+module.exports = { geteightstreamStreams };

@@ -65,9 +65,9 @@ console.log(`[addon.js] Xprime provider fetching enabled: ${ENABLE_XPRIME_PROVID
 const ENABLE_VIDZEE_PROVIDER = process.env.ENABLE_VIDZEE_PROVIDER !== 'false'; // Defaults to true
 console.log(`[addon.js] VidZee provider fetching enabled: ${ENABLE_VIDZEE_PROVIDER}`);
 
-// NEW: Read environment variable for 8stream
-const ENABLE_8STREAM_PROVIDER = process.env.ENABLE_8STREAM_PROVIDER !== 'false'; // Defaults to true
-console.log(`[addon.js] 8stream provider fetching enabled: ${ENABLE_8STREAM_PROVIDER}`);
+// NEW: Read environment variable for eightstream
+const ENABLE_eightstream_PROVIDER = process.env.ENABLE_eightstream_PROVIDER !== 'false'; // Defaults to true
+console.log(`[addon.js] eightstream provider fetching enabled: ${ENABLE_eightstream_PROVIDER}`);
 
 // NEW: Stream caching config
 const STREAM_CACHE_DIR = process.env.VERCEL ? path.join('/tmp', '.streams_cache') : path.join(__dirname, '.streams_cache');
@@ -83,7 +83,7 @@ const { getCuevanaStreams } = require('./providers/cuevana.js'); // Import from 
 const { getHianimeStreams } = require('./providers/hianime.js'); // Import from hianime.js
 const { getStreamContent } = require('./providers/vidsrcextractor.js'); // Import from vidsrcextractor.js
 const { getVidZeeStreams } = require('./providers/VidZee.js'); // NEW: Import from VidZee.js
-const { get8streamStreams } = require('./providers/8stream.js'); // NEW: Import from 8stream.js
+const { geteightstreamStreams } = require('./providers/eightstream.js'); // NEW: Import from eightstream.js
 
 // --- Constants ---
 const TMDB_API_URL = 'https://api.themoviedb.org/3';
@@ -1032,45 +1032,45 @@ const providerFetchFunctions = {
         }
     },
 
-    // 8stream provider with cache integration
+    // eightstream provider with cache integration
     eightstream: async () => {
-        if (!ENABLE_8STREAM_PROVIDER) {
-            console.log('[8stream] Skipping fetch: Disabled by environment variable.');
+        if (!ENABLE_eightstream_PROVIDER) {
+            console.log('[eightstream] Skipping fetch: Disabled by environment variable.');
             return [];
         }
-        if (!shouldFetch('8stream')) {
-            console.log('[8stream] Skipping fetch: Not selected by user.');
+        if (!shouldFetch('eightstream')) {
+            console.log('[eightstream] Skipping fetch: Not selected by user.');
             return [];
         }
         
         // Try to get cached streams first
-        const cachedStreams = await getStreamFromCache('8stream', tmdbTypeFromId, tmdbId, seasonNum, episodeNum);
+        const cachedStreams = await getStreamFromCache('eightstream', tmdbTypeFromId, tmdbId, seasonNum, episodeNum);
         if (cachedStreams) {
-            console.log(`[8stream] Using ${cachedStreams.length} streams from cache.`);
-            return cachedStreams.map(stream => ({ ...stream, provider: '8stream' }));
+            console.log(`[eightstream] Using ${cachedStreams.length} streams from cache.`);
+            return cachedStreams.map(stream => ({ ...stream, provider: 'eightstream' }));
         }
         
         // No cache or expired, fetch fresh
         try {
-            console.log(`[8stream] Fetching new streams...`);
+            console.log(`[eightstream] Fetching new streams...`);
             // The provider needs the TMDB API key to convert IDs
-            const streams = await get8streamStreams(tmdbId, tmdbTypeFromId, seasonNum, episodeNum, TMDB_API_KEY);
+            const streams = await geteightstreamStreams(tmdbId, tmdbTypeFromId, seasonNum, episodeNum, TMDB_API_KEY);
             
             if (streams && streams.length > 0) {
-                console.log(`[8stream] Successfully fetched ${streams.length} streams.`);
+                console.log(`[eightstream] Successfully fetched ${streams.length} streams.`);
                 // Save to cache
-                await saveStreamToCache('8stream', tmdbTypeFromId, tmdbId, streams, 'ok', seasonNum, episodeNum);
-                return streams.map(stream => ({ ...stream, provider: '8stream' }));
+                await saveStreamToCache('eightstream', tmdbTypeFromId, tmdbId, streams, 'ok', seasonNum, episodeNum);
+                return streams.map(stream => ({ ...stream, provider: 'eightstream' }));
             } else {
-                console.log(`[8stream] No streams returned.`);
+                console.log(`[eightstream] No streams returned.`);
                 // Save empty result
-                await saveStreamToCache('8stream', tmdbTypeFromId, tmdbId, [], 'failed', seasonNum, episodeNum);
+                await saveStreamToCache('eightstream', tmdbTypeFromId, tmdbId, [], 'failed', seasonNum, episodeNum);
                 return [];
             }
         } catch (err) {
-            console.error(`[8stream] Error fetching streams:`, err.message);
+            console.error(`[eightstream] Error fetching streams:`, err.message);
             // Save error status to cache
-            await saveStreamToCache('8stream', tmdbTypeFromId, tmdbId, [], 'failed', seasonNum, episodeNum);
+            await saveStreamToCache('eightstream', tmdbTypeFromId, tmdbId, [], 'failed', seasonNum, episodeNum);
             return [];
         }
     }
@@ -1103,7 +1103,7 @@ try {
         'Hianime': shouldFetch('hianime') ? filterStreamsByQuality(providerResults[5], minQualitiesPreferences.hianime, 'Hianime') : [],
         'VidSrc': shouldFetch('vidsrc') ? filterStreamsByQuality(providerResults[6], minQualitiesPreferences.vidsrc, 'VidSrc') : [],
         'VidZee': ENABLE_VIDZEE_PROVIDER && shouldFetch('vidzee') ? filterStreamsByQuality(providerResults[7], minQualitiesPreferences.vidzee, 'VidZee') : [],
-        '8stream': ENABLE_8STREAM_PROVIDER && shouldFetch('8stream') ? filterStreamsByQuality(providerResults[8], minQualitiesPreferences.eightstream, '8stream') : []
+        'eightstream': ENABLE_eightstream_PROVIDER && shouldFetch('eightstream') ? filterStreamsByQuality(providerResults[8], minQualitiesPreferences.eightstream, 'eightstream') : []
     };
 
     // Sort streams by quality for each provider
@@ -1113,7 +1113,7 @@ try {
 
     // Combine streams in the preferred provider order
     combinedRawStreams = [];
-    const providerOrder = ['ShowBox', 'Hianime', 'Xprime.tv', 'HollyMovieHD', 'Soaper TV', '8stream', 'VidZee', 'Cuevana', 'VidSrc'];
+    const providerOrder = ['ShowBox', 'Hianime', 'Xprime.tv', 'HollyMovieHD', 'Soaper TV', 'eightstream', 'VidZee', 'Cuevana', 'VidSrc'];
     providerOrder.forEach(providerKey => {
         if (streamsByProvider[providerKey] && streamsByProvider[providerKey].length > 0) {
             combinedRawStreams.push(...streamsByProvider[providerKey]);
@@ -1184,8 +1184,8 @@ const stremioStreamObjects = sortedCombinedStreams.map((stream) => {
         // For Hianime, language is 'dub' or 'sub' from the stream object
         const category = stream.language ? (stream.language === 'sub' ? 'OG' : stream.language.toUpperCase()) : 'UNK';
         providerDisplayName = `Hianime ${category} 🍥`;
-    } else if (stream.provider === '8stream') {
-        providerDisplayName = `8stream 🍿`;
+    } else if (stream.provider === 'eightstream') {
+        providerDisplayName = `eightstream 🍿`;
     }
 
     let nameDisplay;
